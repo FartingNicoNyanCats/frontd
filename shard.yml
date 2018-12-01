@@ -15,7 +15,7 @@ dependencies:
   html_builder:
     github: crystal-lang/html_builder
   blogd:
-    github: FartingNicoNyanCat/blogd
+    github: FartingNicoNyanCats/blogd
 
 targets:
   frontd:
