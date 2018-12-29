@@ -10,17 +10,14 @@
 			.card-content
 				.media
 					.media-content.has-text-centered
-						a href="/blog/#{@title}"
+						a href="/blog/#{HTML.escape @title_markdown}"
 							h2.title.is-1
-								= @title
-						- @subtitle.try do |subtitle|
-							h3.subtitle.is-2
-								= subtitle
+								== @title_html
 
 						- @author.try do |author|
 							.subtitle.is-6.author
 								= author
 
 				.content.article-body
-					== @html_body
+					== @body_html
 

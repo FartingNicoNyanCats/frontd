@@ -19,7 +19,7 @@ dependencies:
   blogd:
     github: FartingNicoNyanCats/blogd
   authd:
-    github: Lukc/authd
+    github: FartingNicoNyanCats/authd
   slang:
     github: jeromegn/slang
   kilt:

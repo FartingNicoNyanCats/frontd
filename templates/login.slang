@@ -5,7 +5,11 @@
 			== login_error
 				
 		- if user
-			| FIXME: print user data or something here.
+			p Welcome, #{user.login}!
+
+			p Your cart is currently empty, because carts have not been implemented!
+
+			p You’ll also probably want to do account management operations at some point (like setting your username, changing your avatar picture, and so on). All of that is also unimplemented at the moment. But fear not, for the day those features be in production is coming!
 
 		- else
 			form method="POST" action="/login"
