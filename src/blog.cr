@@ -16,7 +16,10 @@ struct UUID
 end
 
 class Blog
-	def initialize(@data_directory = "storage")
+	getter articles_storage
+	getter authd : AuthD::Client
+
+	def initialize(@authd, @data_directory = "storage")
 		@articles_directory = "#{@data_directory}/articles"
 
 		@articles_storage = FS::Hash(UUID, Article).new @data_directory
@@ -40,6 +43,8 @@ class Blog
 	def articles
 		articles = Array(Article).new
 		each_article do |article|
+			load_comments article
+
 			articles << article
 		end
 		articles
@@ -50,54 +55,79 @@ class Blog
 
 		@articles_storage[article.id.not_nil!] = article
 	end
+
+	private def load_comments(article)
+		article.comments = FS::Hash(String, Comment).new comments_directory(article)
+	end
 end
 
 class Blog::Article
 	class JSON
 		::JSON.mapping({
-			author: String,
+			authors: Array(Int32),
 			body_markdown: String,
 			body_html: String?,
 			title_markdown: String,
 			title_html: String?,
+			tags: Array(String),
+			creation_date: {
+				type: Time,
+				default: Time.now
+			},
 			id: UUID?
 		})
 
 		def initialize(article : Article)
-			@author = article.author
+			@authors = article.authors
 			@body_markdown = article.body_markdown
 			@body_html = article.body_html
 			@title_markdown = article.title_markdown
 			@title_html = article.title_html
+			@tags = article.tags
 			@id = article.id
+			@creation_date = Time.now
 		end
 	end
 
-	property id : UUID? = nil
-	getter author : String
-	getter body_markdown : String
-	getter body_html : String?
+	property id           : UUID? = nil
+	getter authors        = Array(Int32).new
+	getter body_markdown  : String
+	getter body_html      : String?
 	getter title_markdown : String
-	getter title_html : String?
+	getter title_html     : String?
+	getter creation_date  : Time
+	getter tags           = Array(String).new
+
+	# Bleh. I really don’t like the idea of it being nillable.
+	property comments : FS::Hash(String, Comment)?
 
 	def initialize(article : Article::JSON)
-		@author = article.author
+		@authors = article.authors
 		@body_markdown = article.body_markdown
 		@title_markdown = article.title_markdown
 
 		@body_html = Markdown.to_html @body_markdown
 		@title_html = Markdown.to_html @title_markdown
 
+		@tags = article.tags
+
+		@creation_date = article.creation_date
+
 		@id = article.id
 	end
 
-	# FIXME: Should all of those really have default arguments?
-	def initialize(title : String = "", @author : String = "", body : String = "")
+	def initialize(title : String = "", author : Int32? = nil, body : String = "")
 		@body_markdown = body
 		@title_markdown = title
 
 		@body_html = Markdown.to_html @body_markdown
 		@title_html = Markdown.to_html @title_markdown
+
+		@creation_date = Time.now
+
+		if author
+			@authors << author
+		end
 	end
 
 	def self.from_json(string) : Article?
@@ -114,7 +144,7 @@ class Blog::Article
 		::Blog::Article::JSON.new(self).to_json
 	end
 
-	def to_html
+	def to_html(env, **attrs)
 		Kilt.render "templates/blog/article.slang"
 	end
 
@@ -130,18 +160,30 @@ class Blog::Article
 end
 
 class Blog::Comment
-	class JSON
-		::JSON.mapping({
-			author: String,
-			body_markdown: String,
-			body_html: String?
-		})
+	::JSON.mapping({
+		id: String,
+		author: Int32,
+		creation_date: Time,
+		body_markdown: String,
+		body_html: String?,
+		likers: Array(Int32)
+	})
+
+	def initialize(@author : Int32, @body_markdown : String)
+		@id = UUID.random.to_s
+		@body_html = Markdown.to_html @body_markdown
+		@creation_date = Time.now
+		@likers = Array(Int32).new
+	end
+
+	def like(user : AuthD::User)
+		unless @likers.any? &.==(user.uid)
+			@likers << user.uid
+		else
+			@likers.reject! &.==(user.uid)
+		end
 	end
 end
 
-blog = Blog.new
-
-blog.each_article do |article|
-	p article
-end
+require "./blog/kemal.cr"
 

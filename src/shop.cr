@@ -57,31 +57,5 @@ class Shop
 	end
 end
 
-macro add_shop_middleware
-	class HTTP::Server::Context
-		property shop_cart : Shop::Cart? = nil
-	end
-
-	class ShopMiddleware < Kemal::Handler
-		def call(context)
-			cart_string = context.session.string? "cart"
-
-			if cart_string.nil?
-				return call_next context
-			end
-
-			begin
-				cart = Shop::Cart.from_json cart_string
-			rescue
-				return call_next context
-			end
-
-			context.shop_cart = cart
-
-			call_next context
-		end
-	end
-
-	add_handler ShopMiddleware.new
-end
+require "./shop/kemal.cr"
 

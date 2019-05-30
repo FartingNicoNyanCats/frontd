@@ -12,7 +12,9 @@
 			p You’ll also probably want to do account management operations at some point (like setting your username, changing your avatar picture, and so on). All of that is also unimplemented at the moment. But fear not, for the day those features be in production is coming!
 
 		- else
-			form method="POST" action="/login"
+			- from = env.params.query["from"]?
+			- action = from.nil? ? "/login" : "/login?from=#{HTML.escape from}"
+			form method="POST" action=action
 				.field
 					label.label Login
 					input.input name="login"

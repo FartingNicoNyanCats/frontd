@@ -1,5 +1,6 @@
 
-- articles = shop.articles
+/ Duplicating `articles` so that it can be transformed later down the line.
+- articles = self.articles
 - category = env.params.url["category_name"]?
 
 nav.navbar.is-light
@@ -15,17 +16,11 @@ nav.navbar.is-light
 - if category
 	- articles = articles.select &.category.==(category)
 
-- page = env.params.query["page"]?
-- if page.nil?
-	- page = 0
-- else
-	- page = page.to_i
+- page = env.params.query["page"]?.try(&.to_i) || 0
 
 - articles_per_page = 15
 
-- page_articles = articles.in_groups_of(articles_per_page)[page]?
-- if page_articles.nil?
-	- page_articles = articles.in_groups_of(articles_per_page)[0]
+- page_articles = get_page_things env, articles, page, articles_per_page
 
 .section
 	.container
@@ -49,40 +44,5 @@ nav.navbar.is-light
 						br
 						== article.to_html_card env
 
-		nav.pagination
-			- last_page = articles.size / articles_per_page
-			- if page > 0
-				a.pagination-previous href="#{env.request.path}?page=#{page-1}"
-					| Previous Page
-			- if page < last_page - 1
-				a.pagination-next href="#{env.request.path}?page=#{page+1}"
-					| Next Page
-
-			ul.pagination-list
-				- current_page = page
-				- (page-2..page+2).each do |page|
-					- if page >= 0 && page < articles.size/articles_per_page
-						- if page == current_page - 2
-							- if page != 0
-								li
-									a.pagination-link href="#{env.request.path}?page=0"
-										= 0
-								li
-									.pagination-ellipsis …
-
-						li
-							- if page == current_page
-								a.pagination-link.is-current href="#{env.request.path}?page=#{page}"
-									= page
-							- else
-								a.pagination-link href="#{env.request.path}?page=#{page}"
-									= page
-
-						- if page == current_page + 2
-							- if page != last_page
-								li
-									.pagination-ellipsis …
-								li
-									a.pagination-link href="#{env.request.path}?page=#{last_page}"
-										= last_page
+		== pagination_list env, articles, page, articles_per_page
 

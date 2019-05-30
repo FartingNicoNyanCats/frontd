@@ -7,7 +7,7 @@
 				.column.is-half
 					/ Stores article as HTML widgets, or nil if error.
 					- articles = cart.articles.map do |name, amount|
-						- article = shop.get_article(name)
+						- article = get_article name
 						- if article
 							- article.to_html_cart env, amount
 
@@ -26,7 +26,7 @@
 					- total = cart.articles.reduce 0 do |acc, tuple|
 						- next if acc.nil? # Cart contains invalid articles.
 						- name, amount = tuple
-						- article = shop.get_article name
+						- article = get_article name
 						- next if article.nil?
 						- acc + article.price * amount
 					= total

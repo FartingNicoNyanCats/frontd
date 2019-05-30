@@ -16,9 +16,10 @@ nav.navbar
 
 		.navbar-end
 			- if user
-				a.navbar-item href="/login"
+				a.navbar-item href="/profile"
 					.image.is-24x24.avatar
-						img.is-rounded src="https://bulma.io/images/placeholders/24x24.png" alt="User Avatar"
+						- src = user.avatar || "https://bulma.io/images/placeholders/24x24.png"
+						img.is-rounded src=src alt="User Avatar"
 					| #{user.full_name || user.login}
 
 				a.navbar-item href="/logout"

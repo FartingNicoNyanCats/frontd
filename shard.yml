@@ -24,6 +24,8 @@ dependencies:
     github: jeromegn/slang
   kilt:
     github: jeromegn/kilt
+  kemal-watcher:
+    github: faustinoaq/kemal-watcher
 
 targets:
   frontd:
